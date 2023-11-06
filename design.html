@@ -71,6 +71,34 @@
         max-height: 95%;
         border-radius: 5%;
       }
+
+      label {
+        display: inline-block;
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+        width: 30%;
+        text-align: right;
+        margin-right: 10px;
+        margin-left: 10px;
+      }
+
+      input[type="number"] {
+        width: 60%;
+        padding: 10px;
+        border-radius: 5px;
+        border: none;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .input-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 300px;
+        margin: 0 auto;
+        margin-top: 20px;
+      }
     </style>
   </head>
   <body>
@@ -80,10 +108,14 @@
       <img class="thumbnail" style="display: none" />
       <input type="file" style="display: none" />
     </div>
-    <button class="download-button" disabled>
-      Download Excel File
-      <a class="download-link" style="display: none"></a>
-    </button>
+    <div class="input-container">
+      <label for="num-rows">Rows:</label>
+      <input type="number" id="num-rows" value="" pattern="\d*" />
+      <label for="num-cols">Columns:</label>
+      <input type="number" id="num-cols" value="" />
+    </div>
+    <button class="download-button" disabled>Download Excel File</button>
+    <a class="download-link" style="display: none"></a>
 
     <script>
       const dropZone = document.querySelector(".drop-zone");
@@ -91,6 +123,11 @@
       const label = document.querySelector(".drop-zone p");
       const button = document.querySelector(".download-button");
       const download = document.querySelector(".download-link");
+
+      const numRowsInput = document.querySelector("#num-rows");
+      const numColsInput = document.querySelector("#num-cols");
+
+      let inputFile;
 
       dropZone.addEventListener("dragenter", (event) => {
         event.preventDefault();
@@ -123,7 +160,9 @@
       });
 
       button.addEventListener("click", (event) => {
-        button.querySelector("a").click();
+        generateXlsx(inputFile).then(() => {
+          download.click();
+        });
       });
 
       function handleFile(file) {
@@ -131,19 +170,39 @@
         thumbnail.src = URL.createObjectURL(file);
         thumbnail.style.display = "block";
         label.style.display = "none";
-        button.disabled = true;
+        inputFile = file;
+        button.disabled = false;
 
-        file.arrayBuffer().then((buf) => {
+        setImageSize(file);
+      }
+
+      function setImageSize(file) {
+        const img = new Image();
+        img.addEventListener("load", () => {
+          numRowsInput.value = "";
+          numRowsInput.placeholder = img.height;
+          numColsInput.value = "";
+          numColsInput.placeholder = img.width;
+          URL.revokeObjectURL(img.src); // Free some memory
+        });
+        img.src = URL.createObjectURL(file);
+      }
+
+      function generateXlsx(file) {
+        return file.arrayBuffer().then((buf) => {
           const array = new Int8Array(buf);
-          let xlsx = img2xlsx(array, 100, undefined);
+          let xlsx = img2xlsx(
+            array,
+            parseInt(numColsInput.value) || undefined,
+            parseInt(numRowsInput.value) || undefined
+          );
           let blob = new Blob([xlsx], {
             type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
           });
           URL.revokeObjectURL(download.href);
           let url = URL.createObjectURL(blob);
           download.href = url;
-          download.download = file.name + ".xlsx";
-          button.disabled = false;
+          download.download = file.name.replace(/\.[^/.]+$/, ".xlsx");
         });
       }
     </script>
