@@ -18,23 +18,16 @@ jobs:
       - name: Build
         run: wasm-pack build --target web --release
       - name: Collect
+        # Note the `touch public/.something`,
+        # this is needed for the actions-gh-pages action to copy the directory
+        # for some reason.
         run: |
-          pwd
-          ls
           mkdir ./public
           mv ./pkg ./public/pkg
           mv ./design.html ./public/index.html
-          ls
-          touch ./public/.git
-          touch ./public/.trick
-          ls ./public
+          touch ./public/.nojekyll
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: public
-          path: public
