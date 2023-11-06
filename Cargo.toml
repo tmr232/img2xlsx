@@ -3,9 +3,18 @@ name = "img2xlsx"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name="img2xlsx"
+path="src/img2xlsx.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 clap = {version="4.4.7", features=["derive"]}
 image = "0.24.7"
 rust_xlsxwriter = "0.54.0"
+
+
+[profile.release]
+# Tell `rustc` to optimize for small code size.
+lto = true
+opt-level = "s"

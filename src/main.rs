@@ -1,24 +1,11 @@
 use clap::Parser;
-use image::{imageops::FilterType, io::Reader as ImageReader, RgbImage};
+use image::{
+    imageops::{colorops, FilterType},
+    io::Reader as ImageReader,
+    RgbImage,
+};
+use img2xlsx::{resize_image, worksheet_from_image};
 use rust_xlsxwriter::{Color, Format, Workbook, XlsxError};
-
-fn worksheet_from_image(img: &RgbImage) -> Result<Workbook, XlsxError> {
-    println!("{}/{}", img.height(), img.width());
-    let mut workbook = Workbook::new();
-    let worksheet = workbook.add_worksheet();
-
-    for x in 0..img.width() {
-        worksheet.set_column_width(x as u16, 2)?;
-        for y in 0..img.height() {
-            let pixel = img.get_pixel(x, y);
-            let color = ((pixel[0] as u32) << 16) + ((pixel[1] as u32) << 8) + (pixel[2] as u32);
-            let format = Format::new().set_background_color(Color::RGB(color));
-            worksheet.write_string_with_format(y, x as u16, "", &format)?;
-        }
-    }
-
-    Ok(workbook)
-}
 
 /// Filter to use for scaling
 #[derive(clap::ValueEnum, Clone, Debug)]
@@ -70,27 +57,18 @@ fn main() -> Result<(), XlsxError> {
     };
 
     if let Some(img) = img.as_rgb8() {
-        let new_size = match (args.rows, args.cols) {
-            (None, None) => None,
-            (None, Some(cols)) => Some((img.height() * cols / img.width(), cols)),
-            (Some(rows), None) => Some((rows, img.width() * rows / img.height())),
-            (Some(rows), Some(cols)) => Some((rows, cols)),
-        };
-        let img = match new_size {
-            Some((new_height, new_width)) => image::imageops::resize(
-                img,
-                new_width,
-                new_height,
-                match &args.filter {
-                    ScaleFilter::Nearest => FilterType::Nearest,
-                    ScaleFilter::Triangle => FilterType::Triangle,
-                    ScaleFilter::CatmullRom => FilterType::CatmullRom,
-                    ScaleFilter::Gaussian => FilterType::Gaussian,
-                    ScaleFilter::Lanczos3 => FilterType::Lanczos3,
-                },
-            ),
-            None => img.clone(),
-        };
+        let img = resize_image(
+            img,
+            args.cols,
+            args.rows,
+            match &args.filter {
+                ScaleFilter::Nearest => FilterType::Nearest,
+                ScaleFilter::Triangle => FilterType::Triangle,
+                ScaleFilter::CatmullRom => FilterType::CatmullRom,
+                ScaleFilter::Gaussian => FilterType::Gaussian,
+                ScaleFilter::Lanczos3 => FilterType::Lanczos3,
+            },
+        );
 
         let mut workbook = worksheet_from_image(&img)?;
         workbook.save(args.output)?;
