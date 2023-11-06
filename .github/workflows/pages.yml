@@ -20,9 +20,11 @@ jobs:
       - name: Collect
         run: |
           ls
-          mkdir public
-          mv pkg public/pkg
-          mv design.html public/index.html
+          mkdir ./public
+          mv ./pkg ./public/pkg
+          mv ./design.html ./public/index.html
+          ls
+          ls ./public
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
