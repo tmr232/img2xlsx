@@ -7,6 +7,8 @@ on:
 
 jobs:
   deploy:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -18,7 +20,7 @@ jobs:
       - name: Collect
         run: |
           mkdir public
-          mv pkg public/*
+          mv pkg public/pkg
           mv design.html public/index.html
 
       - name: Deploy
