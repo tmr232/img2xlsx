@@ -19,6 +19,7 @@ jobs:
         run: wasm-pack build --target web --release
       - name: Collect
         run: |
+          ls
           mkdir public
           mv pkg public/pkg
           mv design.html public/index.html
