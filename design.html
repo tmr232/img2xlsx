@@ -2,6 +2,12 @@
 <html>
   <head>
     <title>Image to Excel Converter</title>
+    <script type="module">
+      import init, { img2xlsx } from "./pkg/img2xlsx.js";
+      init().then(() => {
+        globalThis.img2xlsx = img2xlsx;
+      });
+    </script>
     <style>
       body {
         font-family: sans-serif;
@@ -54,17 +60,37 @@
       .download-button:hover {
         background-color: #444;
       }
+
+      .download-button:disabled {
+        background-color: #888;
+        pointer-events: none;
+      }
+
+      .thumbnail {
+        max-width: 95%;
+        max-height: 95%;
+        border-radius: 5%;
+      }
     </style>
   </head>
   <body>
     <h1>Image to Excel Converter</h1>
     <div class="drop-zone">
       <p>Drop your image here</p>
+      <img class="thumbnail" style="display: none" />
       <input type="file" style="display: none" />
     </div>
-    <button class="download-button">Download Excel File</button>
+    <button class="download-button" disabled>
+      Download Excel File
+      <a class="download-link" style="display: none"></a>
+    </button>
+
     <script>
       const dropZone = document.querySelector(".drop-zone");
+      const thumbnail = document.querySelector(".thumbnail");
+      const label = document.querySelector(".drop-zone p");
+      const button = document.querySelector(".download-button");
+      const download = document.querySelector(".download-link");
 
       dropZone.addEventListener("dragenter", (event) => {
         event.preventDefault();
@@ -83,7 +109,7 @@
       dropZone.addEventListener("drop", (event) => {
         event.preventDefault();
         const file = event.dataTransfer.files[0];
-        console.log(file);
+        handleFile(file);
       });
 
       dropZone.addEventListener("click", (event) => {
@@ -93,8 +119,33 @@
       dropZone.addEventListener("change", (event) => {
         event.preventDefault();
         const file = event.target.files[0];
-        console.log(file);
+        handleFile(file);
       });
+
+      button.addEventListener("click", (event) => {
+        button.querySelector("a").click();
+      });
+
+      function handleFile(file) {
+        URL.revokeObjectURL(thumbnail.src);
+        thumbnail.src = URL.createObjectURL(file);
+        thumbnail.style.display = "block";
+        label.style.display = "none";
+        button.disabled = true;
+
+        file.arrayBuffer().then((buf) => {
+          const array = new Int8Array(buf);
+          let xlsx = img2xlsx(array, 100, undefined);
+          let blob = new Blob([xlsx], {
+            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          });
+          URL.revokeObjectURL(download.href);
+          let url = URL.createObjectURL(blob);
+          download.href = url;
+          download.download = file.name + ".xlsx";
+          button.disabled = false;
+        });
+      }
     </script>
   </body>
 </html>
