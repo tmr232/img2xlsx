@@ -4,7 +4,7 @@ use image::{
     io::Reader as ImageReader,
     RgbImage,
 };
-use img2xlsx::{resize_image, worksheet_from_image};
+use img2xlsx::{resize_image, workbook_from_image};
 use rust_xlsxwriter::{Color, Format, Workbook, XlsxError};
 
 /// Filter to use for scaling
@@ -70,7 +70,7 @@ fn main() -> Result<(), XlsxError> {
             },
         );
 
-        let mut workbook = worksheet_from_image(&img)?;
+        let mut workbook = workbook_from_image(&img)?;
         workbook.save(args.output)?;
     }
     Ok(())

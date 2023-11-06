@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script src="./index.js" defer></script>
+    <script type="module">
+      import init, {
+        add,
+        get_length,
+        image_width,
+        get_buffer,
+        img2xlsx,
+      } from "./pkg/img2xlsx.js";
+      init().then(() => {
+        //alert(add(1, 2));
+        globalThis.get_length = get_length;
+        globalThis.image_width = image_width;
+        globalThis.get_buffer = get_buffer;
+        globalThis.img2xlsx = img2xlsx;
+      });
+    </script>
+  </head>
+  <body>
+    <h1>Image to .xlsx</h1>
+    <form>
+      <label for="image">Select image to convert to .xlsx</label>
+      <input
+        type="file"
+        id="image"
+        name="image"
+        accept="image/png, image/jpeg, image/webp"
+      />
+    </form>
+    <a id="xlsx" href="#">Download me!</a>
+  </body>
+</html>
