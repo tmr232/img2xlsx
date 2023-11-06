@@ -19,6 +19,7 @@ jobs:
         run: wasm-pack build --target web --release
       - name: Collect
         run: |
+          pwd
           ls
           mkdir ./public
           mv ./pkg ./public/pkg
